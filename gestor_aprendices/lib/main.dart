@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gestor_aprendices/feature/register/views/segimiento.dart';
+import 'package:gestor_aprendices/feature/students/views/students_view.dart';
 
 
 void main() {
