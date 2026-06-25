@@ -3,7 +3,6 @@ part of 'app_bloc.dart';
 @immutable
 sealed class AppBlocEvent {}
 
-// crear anotación + estudiante si no existe
 class AddAnnotationEvent extends AppBlocEvent {
   final String studentName;
   final String ficha;
@@ -14,4 +13,10 @@ class AddAnnotationEvent extends AppBlocEvent {
     required this.ficha,
     required this.text,
   });
+}
+
+class DeleteStudentEvent extends AppBlocEvent {
+  final String studentId;
+
+  DeleteStudentEvent(this.studentId);
 }

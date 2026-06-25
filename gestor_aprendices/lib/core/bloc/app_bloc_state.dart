@@ -5,10 +5,16 @@ class AppBlocState {
   final List<Student> students;
   final List<Annotation> annotations;
 
-  const AppBlocState({required this.students, required this.annotations});
+  const AppBlocState({
+    required this.students,
+    required this.annotations,
+  });
 
   factory AppBlocState.initial() {
-    return const AppBlocState(students: [], annotations: []);
+    return const AppBlocState(
+      students: [],
+      annotations: [],
+    );
   }
 
   AppBlocState copyWith({
