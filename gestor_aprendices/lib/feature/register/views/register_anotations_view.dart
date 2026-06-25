@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gestor_aprendices/core/bloc/app_bloc.dart';
 
 class RegisterAnotationsView extends StatefulWidget {
   const RegisterAnotationsView({super.key});
@@ -24,9 +26,18 @@ class _RegisterAnotationsViewState extends State<RegisterAnotationsView> {
 
   void _save() {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Anotación guardada correctamente')),
+      context.read<AppBloc>().add(
+        AddAnnotationEvent(
+          studentName: nameController.text,
+          ficha: fichaController.text,
+          text: annotationController.text,
+        ),
       );
+
+      print('📌 EVENTO ENVIADO:');
+      print('Nombre: ${nameController.text}');
+      print('Ficha: ${fichaController.text}');
+      print('Anotación: ${annotationController.text}');
 
       nameController.clear();
       fichaController.clear();
