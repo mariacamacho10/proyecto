@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
 
@@ -13,12 +14,12 @@ class AppBloc extends Bloc<AppBlocEvent, AppBlocState> {
     on<AddAnnotationToStudentEvent>(_onAddAnnotationToStudent);
     on<UpdateStudentNameEvent>(_onUpdateStudentName);
     on<UpdateAnnotationEvent>(_onUpdateAnnotation);
+    on<UpdateStudentImageEvent>(_onUpdateStudentImage);
+    on<DeleteAnnotationEvent>(_onDeleteAnnotation);
   }
 
-  // Registro desde la pantalla de registro (crea estudiante si no existe)
   void _onAddAnnotation(AddAnnotationEvent event, Emitter<AppBlocState> emit) {
     final existingStudent = state.students.where((s) => s.ficha == event.ficha);
-
     Student student;
 
     if (existingStudent.isEmpty) {
@@ -39,14 +40,11 @@ class AppBloc extends Bloc<AppBlocEvent, AppBlocState> {
       text: event.text,
       date: DateTime.now(),
     );
-
     final updatedAnnotations = List<Annotation>.from(state.annotations)
       ..add(annotation);
-
     emit(state.copyWith(annotations: updatedAnnotations));
   }
 
-  // Añadir anotación a estudiante existente desde el detalle
   void _onAddAnnotationToStudent(
       AddAnnotationToStudentEvent event, Emitter<AppBlocState> emit) {
     final annotation = Annotation(
@@ -55,27 +53,20 @@ class AppBloc extends Bloc<AppBlocEvent, AppBlocState> {
       text: event.text,
       date: DateTime.now(),
     );
-
     final updatedAnnotations = List<Annotation>.from(state.annotations)
       ..add(annotation);
-
     emit(state.copyWith(annotations: updatedAnnotations));
   }
 
-  // Editar nombre del estudiante
   void _onUpdateStudentName(
       UpdateStudentNameEvent event, Emitter<AppBlocState> emit) {
     final updatedStudents = state.students.map((s) {
-      if (s.id == event.studentId) {
-        return Student(id: s.id, name: event.newName, ficha: s.ficha);
-      }
+      if (s.id == event.studentId) return s.copyWith(name: event.newName);
       return s;
     }).toList();
-
     emit(state.copyWith(students: updatedStudents));
   }
 
-  // Editar texto de una anotación
   void _onUpdateAnnotation(
       UpdateAnnotationEvent event, Emitter<AppBlocState> emit) {
     final updatedAnnotations = state.annotations.map((a) {
@@ -89,7 +80,28 @@ class AppBloc extends Bloc<AppBlocEvent, AppBlocState> {
       }
       return a;
     }).toList();
+    emit(state.copyWith(annotations: updatedAnnotations));
+  }
 
+  void _onUpdateStudentImage(
+      UpdateStudentImageEvent event, Emitter<AppBlocState> emit) {
+    final updatedStudents = state.students.map((s) {
+      if (s.id == event.studentId) {
+        return s.copyWith(
+          imageBytes: event.imageBytes,
+          clearImage: event.imageBytes == null,
+        );
+      }
+      return s;
+    }).toList();
+    emit(state.copyWith(students: updatedStudents));
+  }
+
+  void _onDeleteAnnotation(
+      DeleteAnnotationEvent event, Emitter<AppBlocState> emit) {
+    final updatedAnnotations = state.annotations
+        .where((a) => a.id != event.annotationId)
+        .toList();
     emit(state.copyWith(annotations: updatedAnnotations));
   }
 }

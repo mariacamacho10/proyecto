@@ -125,15 +125,22 @@ class _StudentsViewState extends State<StudentsView> {
                           horizontal: 16, vertical: 6),
                       child: ListTile(
                         leading: CircleAvatar(
-                          child: Text(
-                            student.name.isNotEmpty
-                                ? student.name[0].toUpperCase()
-                                : '?',
-                          ),
+                          // Mostrar foto si existe, si no la letra inicial
+                          backgroundImage: student.imageBytes != null
+                              ? MemoryImage(student.imageBytes!)
+                              : null,
+                          child: student.imageBytes == null
+                              ? Text(
+                                  student.name.isNotEmpty
+                                      ? student.name[0].toUpperCase()
+                                      : '?',
+                                )
+                              : null,
                         ),
                         title: Text(
                           student.name,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          style:
+                              const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Text('Ficha: ${student.ficha}'),
                         trailing: Chip(

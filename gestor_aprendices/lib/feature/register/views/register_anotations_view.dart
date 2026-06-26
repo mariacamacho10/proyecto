@@ -42,6 +42,10 @@ class _RegisterAnotationsViewState extends State<RegisterAnotationsView> {
       nameController.clear();
       fichaController.clear();
       annotationController.clear();
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
     }
   }
 
