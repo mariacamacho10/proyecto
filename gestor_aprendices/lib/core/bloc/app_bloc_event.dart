@@ -48,3 +48,21 @@ class UpdateAnnotationEvent extends AppBlocEvent {
     required this.newText,
   });
 }
+
+// Actualizar foto de perfil (bytes, compatible con web y móvil)
+class UpdateStudentImageEvent extends AppBlocEvent {
+  final String studentId;
+  final Uint8List? imageBytes;
+
+  UpdateStudentImageEvent({
+    required this.studentId,
+    this.imageBytes,
+  });
+}
+
+// Eliminar una anotación
+class DeleteAnnotationEvent extends AppBlocEvent {
+  final String annotationId;
+
+  DeleteAnnotationEvent({required this.annotationId});
+}
