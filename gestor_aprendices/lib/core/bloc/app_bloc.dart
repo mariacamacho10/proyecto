@@ -15,24 +15,18 @@ class AppBloc extends Bloc<AppBlocEvent, AppBlocState> {
     on<UpdateStudentNameEvent>(_onUpdateStudentName);
     on<UpdateAnnotationEvent>(_onUpdateAnnotation);
     on<UpdateStudentImageEvent>(_onUpdateStudentImage);
+    on<DeleteStudentsEvent>(_onDeleteStudents);
     on<DeleteAnnotationEvent>(_onDeleteAnnotation);
   }
 
   void _onAddAnnotation(AddAnnotationEvent event, Emitter<AppBlocState> emit) {
-    final existingStudent = state.students.where((s) => s.ficha == event.ficha);
-    Student student;
-
-    if (existingStudent.isEmpty) {
-      student = Student(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        name: event.studentName,
-        ficha: event.ficha,
-      );
-      final updatedStudents = List<Student>.from(state.students)..add(student);
-      emit(state.copyWith(students: updatedStudents));
-    } else {
-      student = existingStudent.first;
-    }
+    final student = Student(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: event.studentName,
+      ficha: event.ficha,
+    );
+    final updatedStudents = List<Student>.from(state.students)..add(student);
+    emit(state.copyWith(students: updatedStudents));
 
     final annotation = Annotation(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -95,6 +89,20 @@ class AppBloc extends Bloc<AppBlocEvent, AppBlocState> {
       return s;
     }).toList();
     emit(state.copyWith(students: updatedStudents));
+  }
+
+  void _onDeleteStudents(
+      DeleteStudentsEvent event, Emitter<AppBlocState> emit) {
+    final updatedStudents = state.students
+        .where((s) => !event.studentIds.contains(s.id))
+        .toList();
+    final updatedAnnotations = state.annotations
+        .where((a) => !event.studentIds.contains(a.studentId))
+        .toList();
+    emit(state.copyWith(
+      students: updatedStudents,
+      annotations: updatedAnnotations,
+    ));
   }
 
   void _onDeleteAnnotation(
