@@ -3,6 +3,8 @@ part of 'app_bloc.dart';
 @immutable
 sealed class AppBlocEvent {}
 
+class LoadAppDataEvent extends AppBlocEvent {}
+
 // Crear anotación + estudiante si no existe (desde RegisterAnotationsView)
 class AddAnnotationEvent extends AppBlocEvent {
   final String studentName;

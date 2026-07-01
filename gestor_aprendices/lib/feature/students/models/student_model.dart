@@ -27,4 +27,22 @@ class Student {
       imageBytes: clearImage ? null : (imageBytes ?? this.imageBytes),
     );
   }
+
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'ficha': ficha,
+      'imageBytes': imageBytes,
+    };
+  }
+
+  factory Student.fromMap(Map<String, Object?> map) {
+    return Student(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      ficha: map['ficha'] as String,
+      imageBytes: map['imageBytes'] as Uint8List?,
+    );
+  }
 }

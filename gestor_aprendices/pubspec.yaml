@@ -10,7 +10,12 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: ^9.1.1
+  bloc: ^9.1.0
+  meta: ^1.10.0
   image_picker: ^0.8.8+1
+  path: ^1.8.3
+  path_provider: ^2.0.15
+  sqflite: ^2.4.0+1
 
 dev_dependencies:
   flutter_test:
