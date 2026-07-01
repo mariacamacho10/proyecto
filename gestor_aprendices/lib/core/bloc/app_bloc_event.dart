@@ -60,6 +60,13 @@ class UpdateStudentImageEvent extends AppBlocEvent {
   });
 }
 
+// Eliminar estudiantes seleccionados
+class DeleteStudentsEvent extends AppBlocEvent {
+  final List<String> studentIds;
+
+  DeleteStudentsEvent({required this.studentIds});
+}
+
 // Eliminar una anotación
 class DeleteAnnotationEvent extends AppBlocEvent {
   final String annotationId;
