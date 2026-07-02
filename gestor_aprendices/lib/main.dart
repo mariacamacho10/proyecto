@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gestor_aprendices/core/bloc/app_bloc.dart';
-import 'package:gestor_aprendices/feature/students/models/student_model.dart';
-import 'package:gestor_aprendices/feature/students/views/student_detail_view.dart';
 import 'package:gestor_aprendices/feature/students/views/students_view.dart';
 import 'package:gestor_aprendices/theme/theme.dart';
 
