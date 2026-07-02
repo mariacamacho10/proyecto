@@ -17,14 +17,23 @@ enum StudentSortOrder { none, ascending, descending }
 
 class _StudentsViewState extends State<StudentsView> {
   final TextEditingController _searchController = TextEditingController();
+  late final FocusNode _searchFocusNode;
   final Set<String> _selectedStudentIds = {};
   bool _selectionMode = false;
+  bool _searchReadOnly = true;
   String _query = '';
   StudentSortOrder _sortOrder = StudentSortOrder.none;
 
   @override
+  void initState() {
+    super.initState();
+    _searchFocusNode = FocusNode();
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -32,7 +41,8 @@ class _StudentsViewState extends State<StudentsView> {
     final filtered = students.where((s) {
       if (_query.isEmpty) return true;
       final q = _query.toLowerCase();
-      return s.name.toLowerCase().contains(q) || s.ficha.toLowerCase().contains(q);
+      return s.name.toLowerCase().contains(q) ||
+          s.ficha.toLowerCase().contains(q);
     }).toList();
 
     if (_sortOrder == StudentSortOrder.none) {
@@ -87,17 +97,21 @@ class _StudentsViewState extends State<StudentsView> {
           ),
           actions: [
             ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text(
+                'Eliminar',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.grey[700],
                 foregroundColor: Colors.white,
               ),
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -107,10 +121,8 @@ class _StudentsViewState extends State<StudentsView> {
     if (confirmed == true) {
       if (!mounted) return;
       context.read<AppBloc>().add(
-            DeleteStudentsEvent(
-              studentIds: _selectedStudentIds.toList(),
-            ),
-          );
+        DeleteStudentsEvent(studentIds: _selectedStudentIds.toList()),
+      );
       _toggleSelectionMode(false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -133,6 +145,15 @@ class _StudentsViewState extends State<StudentsView> {
     }
   }
 
+  void _activateSearchField() {
+    if (_searchReadOnly) {
+      setState(() {
+        _searchReadOnly = false;
+      });
+      Future.microtask(() => _searchFocusNode.requestFocus());
+    }
+  }
+
   Future<void> _openSortDialog() async {
     final selected = await showDialog<StudentSortOrder>(
       context: context,
@@ -141,11 +162,13 @@ class _StudentsViewState extends State<StudentsView> {
           title: const Text('Ordenar por anotaciones'),
           children: [
             SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, StudentSortOrder.descending),
+              onPressed: () =>
+                  Navigator.pop(context, StudentSortOrder.descending),
               child: const Text('Mayor a menor'),
             ),
             SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, StudentSortOrder.ascending),
+              onPressed: () =>
+                  Navigator.pop(context, StudentSortOrder.ascending),
               child: const Text('Menor a mayor'),
             ),
             SimpleDialogOption(
@@ -169,7 +192,9 @@ class _StudentsViewState extends State<StudentsView> {
     return Scaffold(
       appBar: AppBar(
         title: _selectionMode
-            ? Text('${_selectedStudentIds.length} seleccionado${_selectedStudentIds.length == 1 ? '' : 's'}')
+            ? Text(
+                '${_selectedStudentIds.length} seleccionado${_selectedStudentIds.length == 1 ? '' : 's'}',
+              )
             : const Text('Aprendices'),
         leading: IconButton(
           icon: Icon(_selectionMode ? Icons.close : Icons.delete),
@@ -199,6 +224,9 @@ class _StudentsViewState extends State<StudentsView> {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
             child: TextField(
               controller: _searchController,
+              focusNode: _searchFocusNode,
+              readOnly: _searchReadOnly,
+              onTap: _activateSearchField,
               onChanged: (value) => setState(() => _query = value),
               decoration: InputDecoration(
                 hintText: 'Buscar por nombre o ficha...',
@@ -253,8 +281,11 @@ class _StudentsViewState extends State<StudentsView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.people_outline,
-                            size: 64, color: Colors.grey),
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
                         SizedBox(height: 16),
                         Text(
                           'No hay aprendices registrados.',
@@ -275,13 +306,18 @@ class _StudentsViewState extends State<StudentsView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.search_off,
-                            size: 52, color: Colors.grey),
+                        const Icon(
+                          Icons.search_off,
+                          size: 52,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'Sin resultados para "$_query"',
                           style: const TextStyle(
-                              color: Colors.grey, fontSize: 15),
+                            color: Colors.grey,
+                            fontSize: 15,
+                          ),
                         ),
                       ],
                     ),
@@ -297,10 +333,11 @@ class _StudentsViewState extends State<StudentsView> {
                         .where((a) => a.studentId == student.id)
                         .length;
 
-                    final studentAnnotations = state.annotations
-                        .where((a) => a.studentId == student.id)
-                        .toList()
-                      ..sort((a, b) => b.date.compareTo(a.date));
+                    final studentAnnotations =
+                        state.annotations
+                            .where((a) => a.studentId == student.id)
+                            .toList()
+                          ..sort((a, b) => b.date.compareTo(a.date));
                     final latestAnnotation = studentAnnotations.isNotEmpty
                         ? studentAnnotations.first.text
                         : null;
@@ -308,15 +345,20 @@ class _StudentsViewState extends State<StudentsView> {
                     final isSelected = _selectedStudentIds.contains(student.id);
                     return Card(
                       color: isSelected
-                          ? Theme.of(context).colorScheme.primary.withAlpha((0.12 * 255).round())
+                          ? Theme.of(context).colorScheme.primary.withAlpha(
+                              (0.12 * 255).round(),
+                            )
                           : null,
                       margin: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
                       child: ListTile(
                         leading: _selectionMode
                             ? Checkbox(
                                 value: isSelected,
-                                onChanged: (_) => _toggleStudentSelection(student.id),
+                                onChanged: (_) =>
+                                    _toggleStudentSelection(student.id),
                               )
                             : CircleAvatar(
                                 // Mostrar foto si existe, si no la letra inicial
@@ -333,8 +375,7 @@ class _StudentsViewState extends State<StudentsView> {
                               ),
                         title: Text(
                           student.name,
-                          style:
-                              const TextStyle(fontWeight: FontWeight.w600),
+                          style: const TextStyle(fontWeight: FontWeight.w600),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,9 +434,7 @@ class _StudentsViewState extends State<StudentsView> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (_) => const RegisterAnotationsView(),
-            ),
+            MaterialPageRoute(builder: (_) => const RegisterAnotationsView()),
           );
         },
         tooltip: 'Registrar anotación',

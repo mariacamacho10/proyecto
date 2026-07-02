@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:gestor_aprendices/core/bloc/app_bloc.dart';
+import 'package:gestor_aprendices/feature/register/models/annotation_model.dart';
 import 'package:gestor_aprendices/feature/students/models/student_model.dart';
 
 class StudentDetailView extends StatefulWidget {
@@ -70,9 +71,8 @@ class _StudentDetailViewState extends State<StudentDetailView> {
 
     if (option == 'remove') {
       context.read<AppBloc>().add(
-            UpdateStudentImageEvent(
-                studentId: currentStudent.id, imageBytes: null),
-          );
+        UpdateStudentImageEvent(studentId: currentStudent.id, imageBytes: null),
+      );
       return;
     }
 
@@ -85,11 +85,11 @@ class _StudentDetailViewState extends State<StudentDetailView> {
       final bytes = await file.readAsBytes();
       if (mounted) {
         context.read<AppBloc>().add(
-              UpdateStudentImageEvent(
-                studentId: currentStudent.id,
-                imageBytes: bytes,
-              ),
-            );
+          UpdateStudentImageEvent(
+            studentId: currentStudent.id,
+            imageBytes: bytes,
+          ),
+        );
       }
     }
   }
@@ -118,9 +118,11 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                 final text = controller.text.trim();
                 if (text.isNotEmpty) {
                   context.read<AppBloc>().add(
-                        AddAnnotationToStudentEvent(
-                            studentId: studentId, text: text),
-                      );
+                    AddAnnotationToStudentEvent(
+                      studentId: studentId,
+                      text: text,
+                    ),
+                  );
                   Navigator.pop(ctx);
                 }
               },
@@ -163,9 +165,8 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                 final newName = controller.text.trim();
                 if (newName.isNotEmpty && newName != s.name) {
                   context.read<AppBloc>().add(
-                        UpdateStudentNameEvent(
-                            studentId: s.id, newName: newName),
-                      );
+                    UpdateStudentNameEvent(studentId: s.id, newName: newName),
+                  );
                 }
                 Navigator.pop(ctx);
               },
@@ -206,9 +207,11 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                 final newText = controller.text.trim();
                 if (newText.isNotEmpty && newText != currentText) {
                   context.read<AppBloc>().add(
-                        UpdateAnnotationEvent(
-                            annotationId: annotationId, newText: newText),
-                      );
+                    UpdateAnnotationEvent(
+                      annotationId: annotationId,
+                      newText: newText,
+                    ),
+                  );
                 }
                 Navigator.pop(ctx);
               },
@@ -244,8 +247,8 @@ class _StudentDetailViewState extends State<StudentDetailView> {
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
                 context.read<AppBloc>().add(
-                      DeleteAnnotationEvent(annotationId: annotationId),
-                    );
+                  DeleteAnnotationEvent(annotationId: annotationId),
+                );
                 Navigator.pop(ctx);
               },
               child: const Text(
@@ -271,12 +274,20 @@ class _StudentDetailViewState extends State<StudentDetailView> {
     );
   }
 
-  Future<void> _shareStudentDetails(Student student) async {
+  Future<void> _shareStudentDetails(
+    Student student,
+    List<Annotation> annotations,
+  ) async {
+    final annotationsText = annotations.isEmpty
+        ? 'No hay anotaciones registradas.'
+        : annotations.map((a) => '- ${a.text}').join('\n');
+
     final message = [
       'Aprendiz: ${student.name}',
       'Ficha: ${student.ficha}',
-      'Ver más detalles en la app de gestor de aprendices.',
-    ].join('\n');
+      'Anotaciones:',
+      annotationsText,
+    ].join('\n\n');
 
     await Share.share(message, subject: 'Detalle del aprendiz');
   }
@@ -290,10 +301,11 @@ class _StudentDetailViewState extends State<StudentDetailView> {
           orElse: () => widget.student,
         );
 
-        final annotations = state.annotations
-            .where((a) => a.studentId == widget.student.id)
-            .toList()
-          ..sort((a, b) => b.date.compareTo(a.date));
+        final annotations =
+            state.annotations
+                .where((a) => a.studentId == widget.student.id)
+                .toList()
+              ..sort((a, b) => b.date.compareTo(a.date));
 
         return Scaffold(
           appBar: AppBar(
@@ -302,7 +314,8 @@ class _StudentDetailViewState extends State<StudentDetailView> {
               IconButton(
                 icon: const Icon(Icons.share_outlined),
                 tooltip: 'Compartir',
-                onPressed: () => _shareStudentDetails(currentStudent),
+                onPressed: () =>
+                    _shareStudentDetails(currentStudent, annotations),
               ),
             ],
           ),
@@ -326,8 +339,9 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                         children: [
                           CircleAvatar(
                             radius: 32,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
                             backgroundImage: currentStudent.imageBytes != null
                                 ? MemoryImage(currentStudent.imageBytes!)
                                 : null,
@@ -338,9 +352,9 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                                         : '?',
                                     style: TextStyle(
                                       fontSize: 24,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onPrimary,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   )
@@ -355,7 +369,9 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                                 color: Theme.of(context).colorScheme.primary,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: Colors.white, width: 1.5),
+                                  color: Colors.white,
+                                  width: 1.5,
+                                ),
                               ),
                               child: Icon(
                                 Icons.camera_alt,
@@ -374,9 +390,7 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                         children: [
                           Text(
                             currentStudent.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
@@ -403,11 +417,15 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                   children: [
                     const Icon(Icons.history, size: 18),
                     const SizedBox(width: 6),
-                    Text('Historial de anotaciones',
-                        style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      'Historial de anotaciones',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const Spacer(),
-                    Text('${annotations.length} total',
-                        style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      '${annotations.length} total',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
@@ -420,15 +438,24 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.notes_outlined,
-                                size: 48, color: Colors.grey),
+                            Icon(
+                              Icons.notes_outlined,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
                             SizedBox(height: 12),
-                            Text('No hay anotaciones aún.',
-                                style: TextStyle(color: Colors.grey)),
+                            Text(
+                              'No hay anotaciones aún.',
+                              style: TextStyle(color: Colors.grey),
+                            ),
                             SizedBox(height: 4),
-                            Text('Usa el botón + para agregar una.',
-                                style: TextStyle(
-                                    color: Colors.grey, fontSize: 13)),
+                            Text(
+                              'Usa el botón + para agregar una.',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                              ),
+                            ),
                           ],
                         ),
                       )
@@ -448,15 +475,17 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                           return Card(
                             margin: const EdgeInsets.only(bottom: 10),
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(14, 12, 8, 12),
+                              padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     children: [
-                                      const Icon(Icons.calendar_today,
-                                          size: 13, color: Colors.grey),
+                                      const Icon(
+                                        Icons.calendar_today,
+                                        size: 13,
+                                        color: Colors.grey,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         formattedDate,
@@ -468,15 +497,17 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                                       const Spacer(),
                                       // Botón editar
                                       IconButton(
-                                        icon: const Icon(Icons.edit_outlined,
-                                            size: 18),
+                                        icon: const Icon(
+                                          Icons.edit_outlined,
+                                          size: 18,
+                                        ),
                                         tooltip: 'Editar anotación',
                                         visualDensity: VisualDensity.compact,
                                         onPressed: () =>
                                             _showEditAnnotationDialog(
-                                          annotation.id,
-                                          annotation.text,
-                                        ),
+                                              annotation.id,
+                                              annotation.text,
+                                            ),
                                       ),
                                       // Botón eliminar
                                       IconButton(
@@ -489,15 +520,18 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                                         visualDensity: VisualDensity.compact,
                                         onPressed: () =>
                                             _confirmDeleteAnnotation(
-                                                annotation.id),
+                                              annotation.id,
+                                            ),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 6),
-                                  Text(annotation.text,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium),
+                                  Text(
+                                    annotation.text,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
+                                  ),
                                 ],
                               ),
                             ),
