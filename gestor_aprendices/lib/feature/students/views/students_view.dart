@@ -86,13 +86,18 @@ class _StudentsViewState extends State<StudentsView> {
             'También se eliminarán sus anotaciones.',
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[700],
+                foregroundColor: Colors.white,
+              ),
               onPressed: () => Navigator.of(context).pop(false),
               child: const Text('Cancelar'),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Eliminar'),
+              child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
