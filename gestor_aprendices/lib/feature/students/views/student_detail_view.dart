@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:gestor_aprendices/core/bloc/app_bloc.dart';
 import 'package:gestor_aprendices/feature/students/models/student_model.dart';
 
@@ -256,7 +257,11 @@ class _StudentDetailViewState extends State<StudentDetailView> {
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[700],
+                foregroundColor: Colors.white,
+              ),
               onPressed: () => Navigator.pop(ctx),
               child: const Text('Cancelar'),
             ),
@@ -266,23 +271,42 @@ class _StudentDetailViewState extends State<StudentDetailView> {
     );
   }
 
+  Future<void> _shareStudentDetails(Student student) async {
+    final message = [
+      'Aprendiz: ${student.name}',
+      'Ficha: ${student.ficha}',
+      'Ver más detalles en la app de gestor de aprendices.',
+    ].join('\n');
+
+    await Share.share(message, subject: 'Detalle del aprendiz');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Detalle del aprendiz')),
-      body: BlocBuilder<AppBloc, AppBlocState>(
-        builder: (context, state) {
-          final currentStudent = state.students.firstWhere(
-            (s) => s.id == widget.student.id,
-            orElse: () => widget.student,
-          );
+    return BlocBuilder<AppBloc, AppBlocState>(
+      builder: (context, state) {
+        final currentStudent = state.students.firstWhere(
+          (s) => s.id == widget.student.id,
+          orElse: () => widget.student,
+        );
 
-          final annotations = state.annotations
-              .where((a) => a.studentId == widget.student.id)
-              .toList()
-            ..sort((a, b) => b.date.compareTo(a.date));
+        final annotations = state.annotations
+            .where((a) => a.studentId == widget.student.id)
+            .toList()
+          ..sort((a, b) => b.date.compareTo(a.date));
 
-          return Column(
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Detalle del aprendiz'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.share_outlined),
+                tooltip: 'Compartir',
+                onPressed: () => _shareStudentDetails(currentStudent),
+              ),
+            ],
+          ),
+          body: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // — Tarjeta del estudiante —
@@ -482,14 +506,14 @@ class _StudentDetailViewState extends State<StudentDetailView> {
                       ),
               ),
             ],
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddAnnotationDialog(widget.student.id),
-        tooltip: 'Añadir anotación',
-        child: const Icon(Icons.add),
-      ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _showAddAnnotationDialog(widget.student.id),
+            tooltip: 'Añadir anotación',
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
     );
   }
 }
